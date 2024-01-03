@@ -68,8 +68,12 @@ void set_grid_points_1D(double* x, int* la){
   }
 }
 
-double relative_forward_error(double* x, double* y, int* la){
-  return 0;
+double relative_forward_error(double* x, double* y, int* la){ //RHS, EX_SOL, &la
+  double r[*la]; //residu
+  for (int i = 0; i < *la; ++i) {
+      r[i] = y[i] - x[i];
+  }
+  return cblas_dnrm2(*la, r, 1) / cblas_dnrm2(*la, y, 1) ;
 }
 
 int indexABCol(int i, int j, int *lab){

@@ -4,6 +4,7 @@
 /* to solve the Poisson 1D problem        */
 /******************************************/
 #include "lib_poisson1D.h"
+#include <string.h>
 
 #define TRF 0
 #define TRI 1
@@ -29,7 +30,7 @@ int main(int argc,char *argv[])
   double relres;
 
   if (argc == 2) {
-    IMPLEM = atoi(argv[1]);
+    IMPLEM = atoi(argv[1]); //0 if no entry
   } else if (argc > 2) {
     perror("Application takes at most one argument");
     exit(1);
@@ -37,7 +38,7 @@ int main(int argc,char *argv[])
 
   NRHS=1;
   nbpoints=10;
-  la=nbpoints-2;
+  la=nbpoints-2; //colonne
   T0=-5.0;
   T1=5.0;
 
@@ -58,7 +59,7 @@ int main(int argc,char *argv[])
   kv=1;
   ku=1;
   kl=1;
-  lab=kv+kl+ku+1;
+  lab=kv+kl+ku+1; //ligne
 
   AB = (double *) malloc(sizeof(double)*lab*la);
 
@@ -90,16 +91,31 @@ int main(int argc,char *argv[])
 
   /* It can also be solved with dgbsv */
   if (IMPLEM == SV) {
-    // TODO : use dgbsv
+    dgbsv_(&la, &kl, &ku, &NRHS, AB, &lab, ipiv, RHS, &la, &info);
   }
 
   write_GB_operator_colMajor_poisson1D(AB, &lab, &la, "LU.dat");
   write_xy(RHS, X, &la, "SOL.dat");
 
   /* Relative forward error */
-  relres = relative_forward_error(RHS, EX_SOL, &la);
+  relres = relative_forward_error(RHS, EX_SOL, &la); //RHS is now the sol x
   
   printf("\nThe relative forward error is relres = %e\n",relres);
+  
+  /* dgbmv validation */
+  double *EXP_RHS=(double *) malloc(sizeof(double)*la);
+  memset(EXP_RHS, 0, sizeof(double) * la);
+  double *EX_RHS=(double *) malloc(sizeof(double)*la);
+  memset(EX_RHS, 0, sizeof(double) * la);
+  cblas_dgbmv(CblasColMajor, CblasNoTrans, la, la, kl, ku, 1, AB, lab, RHS, 1, 1, EXP_RHS,1); //A*x = y => AB*RHS = EXP_RHS
+  cblas_dgbmv(CblasColMajor, CblasNoTrans, la, la, kl, ku, 1, AB, lab, EX_SOL, 1, 1, EX_RHS,1); //A*x = y => AB*EX_SOL = EX_RHS
+  double r = relative_forward_error(EXP_RHS, EX_RHS, &la); //RHS is now the sol x
+
+  printf("\nEX4 : dgbmv validation : r = erreur entre AB*X(calcule) et AB*X(exacte) \n");
+  printf("\nr = %e\n",r);
+  
+  free(EXP_RHS);
+  free(EX_RHS);
 
   free(RHS);
   free(EX_SOL);

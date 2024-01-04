@@ -69,7 +69,7 @@ void set_grid_points_1D(double* x, int* la){
 }
 
 double relative_forward_error(double* x, double* y, int* la){ //RHS, EX_SOL, &la
-  double r[*la]; //residu
+  double r[*la]; 
   for (int i = 0; i < *la; ++i) {
       r[i] = y[i] - x[i];
   }

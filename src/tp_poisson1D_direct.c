@@ -25,7 +25,7 @@ int main(int argc,char *argv[])
   double T0, T1;
   double *RHS, *EX_SOL, *X;
   double **AAB;
-  double *AB;
+  double *AB, *AB_init;
 
   double relres;
 
@@ -62,9 +62,12 @@ int main(int argc,char *argv[])
   lab=kv+kl+ku+1; //ligne
 
   AB = (double *) malloc(sizeof(double)*lab*la);
+  AB_init = (double *) malloc(sizeof(double)*lab*la);
 
   set_GB_operator_colMajor_poisson1D(AB, &lab, &la, &kv);
   write_GB_operator_colMajor_poisson1D(AB, &lab, &la, "AB.dat");
+  
+  set_GB_operator_colMajor_poisson1D(AB_init, &lab, &la, &kv);
 
   printf("Solution with LAPACK\n");
   ipiv = (int *) calloc(la, sizeof(int));
@@ -107,8 +110,8 @@ int main(int argc,char *argv[])
   memset(EXP_RHS, 0, sizeof(double) * la);
   double *EX_RHS=(double *) malloc(sizeof(double)*la);
   memset(EX_RHS, 0, sizeof(double) * la);
-  cblas_dgbmv(CblasColMajor, CblasNoTrans, la, la, kl, ku, 1, AB, lab, RHS, 1, 1, EXP_RHS,1); //A*x = y => AB*RHS = EXP_RHS
-  cblas_dgbmv(CblasColMajor, CblasNoTrans, la, la, kl, ku, 1, AB, lab, EX_SOL, 1, 1, EX_RHS,1); //A*x = y => AB*EX_SOL = EX_RHS
+  cblas_dgbmv(CblasColMajor, CblasNoTrans, la, la, kl, ku, 1, AB_init, lab, RHS, 1, 1, EXP_RHS,1); //A*x = y => AB*RHS = EXP_RHS
+  cblas_dgbmv(CblasColMajor, CblasNoTrans, la, la, kl, ku, 1, AB_init, lab, EX_SOL, 1, 1, EX_RHS,1); //A*x = y => AB*EX_SOL = EX_RHS
   double r = relative_forward_error(EXP_RHS, EX_RHS, &la); //RHS is now the sol x
 
   printf("\nEX4 : dgbmv validation : r = erreur entre AB*X(calcule) et AB*X(exacte) \n");
@@ -116,7 +119,8 @@ int main(int argc,char *argv[])
   
   free(EXP_RHS);
   free(EX_RHS);
-
+  free(AB_init);
+  
   free(RHS);
   free(EX_SOL);
   free(X);

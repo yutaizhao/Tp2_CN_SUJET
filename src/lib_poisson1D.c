@@ -80,6 +80,30 @@ int indexABCol(int i, int j, int *lab){
   return j*(*lab)+i;
 }
 
-int dgbtrftridiag(int *la, int*n, int *kl, int *ku, double *AB, int *lab, int *ipiv, int *info){
-  return *info;
+int dgbtrftridiag(int *la, int *n, int *kl, int *ku, double *AB, int *lab, int *ipiv, int *info) {
+// a laide de QI Chun
+
+    for (int k = 0; k < *n - 1; k++) {
+        // 检查主对角线元素是否为零
+        if (AB[4 * k +5 ] == 0.0) {
+            perror("Failed");
+            *info = -1;
+            return *info;
+        }
+        // 记录行交换
+        ipiv[k] = k + 1;  // Assuming 1-based indexing
+
+        // 计算乘数
+        double multiplier = AB[4 * k +3] / AB[4 * k +2];
+
+        // 更新下一行的元素
+        AB[4 * k + 6] -= multiplier * AB[4 * k+5];
+        AB[4 * k +3] = multiplier;
+    }
+
+    AB[4 * (*n) - 1] = 0;
+    *info = 0;
+
+    return *info;
 }
+

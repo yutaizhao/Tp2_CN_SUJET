@@ -113,7 +113,7 @@ remove("PERF_SV");
           if(nbpoints == 10){
       		double r = relative_forward_error(RHS, EX_SOL, &la); //RHS is now the sol x
       		printf("\nEX6 : dgbtrftridiag validation pour n =10: r = error entre Sol calculee a partir de dgbtrftridiag et sol exacte \n");
-  		printf("\nr = %e\n",r);
+  		printf("r = %e\n",r);
   	}
       }
     }else{
@@ -133,9 +133,10 @@ remove("PERF_SV");
   //write_xy(RHS, X, &la, "SOL.dat");
 
   /* Relative forward error */
+  if(nbpoints == 10){
   relres = relative_forward_error(RHS, EX_SOL, &la); //RHS is now the sol x
-  
-  //printf("\nThe relative forward error is relres = %e\n",relres);
+  printf("\nThe relative forward error is relres = %e\n",relres);
+  }
   
   /* dgbmv validation */
   if(nbpoints == 10){
@@ -147,13 +148,13 @@ remove("PERF_SV");
   double *EX_RHS=(double *) malloc(sizeof(double)*la);
   memset(EX_RHS, 0, sizeof(double) * la);
   
-  cblas_dgbmv(CblasColMajor, CblasNoTrans, la, la, kl, ku, 1, AB_init, lab, RHS, 1, 1, EXP_RHS,1); //A*x = y => AB*RHS = EXP_RHS
-  cblas_dgbmv(CblasColMajor, CblasNoTrans, la, la, kl, ku, 1, AB_init, lab, EX_SOL, 1, 1, EX_RHS,1); //A*x = y => AB*EX_SOL = EX_RHS
+  cblas_dgbmv(CblasColMajor, CblasNoTrans, la, la, kl, ku, 1, AB_init, lab-1, RHS, 1, 1, EXP_RHS,1); //A*x = y => AB*RHS = EXP_RHS
+  cblas_dgbmv(CblasColMajor, CblasNoTrans, la, la, kl, ku, 1, AB_init, lab-1, EX_SOL, 1, 1, EX_RHS,1); //A*x = y => AB*EX_SOL = EX_RHS
   
   double r = relative_forward_error(EXP_RHS, EX_RHS, &la); //RHS is now the sol x
   
   printf("\nEX4 : dgbmv validation pour n =10: r = erreur entre AB*X(calcule) et AB*X(exacte) \n");
-  printf("\nr = %e\n",r);
+  printf("r = %e\n",r);
   
   free(EXP_RHS);
   free(EX_RHS);

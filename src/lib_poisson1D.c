@@ -87,11 +87,11 @@ int dgbtrftridiag(int *la, int *n, int *kl, int *ku, double *AB, int *lab, int *
         // 检查主对角线元素是否为零
         if (AB[4 * k +5 ] == 0.0) {
             perror("Failed");
-            *info = -1;
+            *info = 1;
             return *info;
         }
         // 记录行交换
-        ipiv[k] = k + 1;  // Assuming 1-based indexing
+        ipiv[k] = k + 1; 
 
         // 计算乘数
         double multiplier = AB[4 * k +3] / AB[4 * k +2];

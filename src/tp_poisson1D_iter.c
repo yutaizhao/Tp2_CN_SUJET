@@ -95,7 +95,7 @@ int main(int argc,char *argv[])
 
   /* Richardson General Tridiag */
 
-  /* get MB (:=M, D for Jacobi, (D-E) for Gauss-seidel) */
+  /* get MB (:=M^-1, D^-1 for Jacobi, (D-E)^-1 for Gauss-seidel) */
   kv = 1;
   ku = 1;
   kl = 1;
@@ -117,6 +117,10 @@ int main(int argc,char *argv[])
 
   /* Write convergence history */
   write_vec(resvec, &nbite, "RESVEC.dat");
+  
+  /* Erreur par rapport a la sol analytique*/
+  double e = relative_forward_error(SOL,EX_SOL,&la);
+  printf("\nl’erreur par rapport a la solution analytique = %e\n",e);
 
   free(resvec);
   free(RHS);

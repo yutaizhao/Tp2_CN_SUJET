@@ -68,20 +68,13 @@ void extract_MB_jacobi_tridiag(double *AB, double *MB, int *lab, int *la,int *ku
     int ii, jj, kk;
   for (jj=0;jj<(*la);jj++){
     kk = jj*(*lab);
-    if (*kv>=0){
-      for (ii=0;ii< *kv;ii++){
-	MB[kk+ii]=0.0;
-      }
-    }
-    MB[kk+ *kv]=AB[kk+ *kv];
+    MB[kk+ *kv]=1/AB[kk+ *kv];
   }
-  MB[0]=0.0;
-  MB[(*lab)*(*la)-1]=0.0;
 }
 
 void extract_MB_gauss_seidel_tridiag(double *AB, double *MB, int *lab, int *la,int *ku, int*kl, int *kv){
 
- int ii, jj, kk;
+  int ii, jj, kk;
   for (jj=0;jj<(*la);jj++){
     kk = jj*(*lab);
     if (*kv>=0){
@@ -89,87 +82,33 @@ void extract_MB_gauss_seidel_tridiag(double *AB, double *MB, int *lab, int *la,i
 	MB[kk+ii]=0.0;
       }
     }
+    // diag 
     MB[kk+ *kv]=AB[kk+ *kv];
-    for (int i=1;i<= *kl;i++){
-	MB[kk+ *kv -i]= - AB[kk+ *kv -i];
+    
+    for (int i=1;i<= *kl;i++){//sub diagonales
+       //MB[kk+ *kv -i]= - AB[ kk+ *kv -i];
+       MB[kk+ *kv +i]= - AB[ ((*la-1) * *lab) - kk+ *kv - i]; 
       }
   }
+  
   MB[0]=0.0;
   MB[(*lab)*(*la)-1]=0.0;
-
-}
-
-/*
-void richardson_MB_jac(double *AB, double *RHS, double *X, double *MB, int *lab, int *la,int *ku, int*kl, double *tol, int *maxit, double *resvec, int *nbite){
- 	
-    double *b = (double *)malloc((*la) * sizeof(double));
-    memset(b,0, sizeof(double) * (*la));
-    
-    //calcul b_exp initial b0
-    cblas_dgbmv(CblasColMajor, CblasNoTrans, *la, *la, *kl, *ku, 1, AB, *lab, X, 1, 0, b, 1);
-    
-
-    //calcul residu relatif initial
-    double r_relatif = relative_forward_error(b,RHS,la);
-    
-    
-
-    //Richardson
-    while (r_relatif > *tol && *nbite < *maxit) {
-        
-        //calcul sol
-        for (int i = 0; i < *la; ++i) {
-            printf("%f \n",1/MB[i*(*lab)+(*kl)]);
-            X[i] = X[i] + (1/MB[i*(*lab)+(*kl)]) * (RHS[i]-b[i]);
-        }
-
-        //residu update
-        r_relatif = relative_forward_error(b,RHS,la);
-        resvec[*nbite] = r_relatif;
-        
-        //b_exp update
-        cblas_dgbmv(CblasColMajor, CblasNoTrans, *la, *la, *kl, *ku, 1, AB, *lab, X, 1, 0, b, 1);
-        
-        
-        *nbite = *nbite + 1;
-    }
-    
-    free(b);
-
-}
-*/
-
-void richardson_MB(double *AB, double *RHS, double *X, double *MB, int *lab, int *la,int *ku, int*kl, double *tol, int *maxit, double *resvec, int *nbite){
- 	
-    
+  
 
     //calcul matrice inverse
-
-
-
     // Facteurs de permutation pour la décomposition LU
-
     int *ipiv = (int *)malloc((*la)* sizeof(int));
-
     memset(ipiv,0, sizeof(int) * (*la));
 
-   
-
+  
     //matrice idendite & resultat
-
-
-
     double *I_inv = (double *)malloc((*lab) * (*la) * sizeof(double));
+    memset(I_inv,0, sizeof(double) * (*la)*(*lab));
 
-    int ii, jj, kk;
-
-  for (jj=0;jj<(*la);jj++){
-
-    kk = jj*(*lab);
-
-    I_inv[kk+ 1]=1;
-
-  }
+    for (int jj=0;jj<(*la);jj++){
+       int kk = jj*(*lab);
+       I_inv[kk+1]=1;
+    }
 
     // Résoudre le système d'équations AX = I_inv, ici A = MB
 
@@ -177,98 +116,73 @@ void richardson_MB(double *AB, double *RHS, double *X, double *MB, int *lab, int
 
     int info = 0;
     int ku_new = 0;
-    int lab_new = 0;
-    dgbsv_(la, kl, &ku_new, la, MB, lab, ipiv, I_inv , la, &info);
 
+    dgbtrf_(la, la, kl, &ku_new, MB, lab, ipiv, &info);
+    
+    if (info != 0) {
+    	perror("MB non LU ou error !\n");
+    	printf("info = %d \n", info);
+    	return;
+    }  
+    
+    dgbtrs_("N", la, kl, &ku_new, la, MB, lab, ipiv, I_inv, la, &info, 1);
 
     if (info != 0) {
-
     	perror("MB non inversible ou error !\n");
-
     	printf("info = %d \n", info);
-
     	return;
-
-    }    
+    }  
     
-    
-  
+    memset(MB,0, sizeof(double) * (*la)*(*lab));
+    for (int jj=0;jj<(*la)*(*lab);jj++){
+       MB[jj] = I_inv[jj];
+   }
 
+    free(ipiv);
+    free(I_inv);  
+     
+
+}
+
+void richardson_MB(double *AB, double *RHS, double *X, double *MB, int *lab, int *la,int *ku, int*kl, double *tol, int *maxit, double *resvec, int *nbite){
 
     double *b = (double *)malloc((*la) * sizeof(double));
-
     memset(b,0, sizeof(double) * (*la));
 
-        
-
     //calcul b_exp initial b0
-
     cblas_dgbmv(CblasColMajor, CblasNoTrans, *la, *la, *kl, *ku, 1, AB, *lab, X, 1, 0, b, 1);
 
 
-
-
-
     //calcul residu relatif initial
-
     double r_relatif = relative_forward_error(b,RHS,la);
-
-    
-
-
 
     //Richardson
     double r[*la];
-    
 
     while (r_relatif > *tol && *nbite < *maxit) {
 
-        
-
         //calcul b - AB*X = RHS - b
-
-        
-
         for (int i = 0; i < *la; ++i) {
-
             r[i] = RHS[i]-b[i];
-
         }
         
        
         //calcul sol X
-
-        cblas_dgbmv(CblasColMajor, CblasNoTrans, *la, *la, *kl, *ku, 1, I_inv, *lab, r, 1, 1, X, 1);
+        cblas_dgbmv(CblasColMajor, CblasNoTrans, *la, *la, *kl, *ku, 1, MB, *lab, r, 1, 1, X, 1);
     
 
-
         //residu update
-
         r_relatif = relative_forward_error(b,RHS,la);
-
         resvec[*nbite] = r_relatif;
 
-        
-
         //b_exp update
-
         cblas_dgbmv(CblasColMajor, CblasNoTrans, *la, *la, *kl, *ku, 1, AB, *lab, X, 1, 0, b, 1);
 
-        
-
-        
 
         *nbite = *nbite + 1;
-
     }
 
 
-
     free(b);
-
-    free(ipiv);
-
-    free(I_inv);
-
 }
 

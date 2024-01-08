@@ -1,6 +1,6 @@
-set title 'Multiple Data Files Plot'
-set xlabel 'X-axis'
-set ylabel 'Y-axis'
+set title 'Historique de convergence'
+set xlabel 'Nombre Itérations'
+set ylabel 'Norme du résidu relatif'
 
 set xrange [0:200]
 

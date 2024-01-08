@@ -99,17 +99,21 @@ int main(int argc,char *argv[])
   kv = 1;
   ku = 1;
   kl = 1;
-  MB = (double *) malloc(sizeof(double)*(lab)*la);
+  
+   /* Solve with General Richardson */
   if (IMPLEM == JAC) {
+    MB = (double *) malloc(sizeof(double)*(lab)*la);
     extract_MB_jacobi_tridiag(AB, MB, &lab, &la, &ku, &kl, &kv);
-  } else if (IMPLEM == GS) {
-    extract_MB_gauss_seidel_tridiag(AB, MB, &lab, &la, &ku, &kl, &kv);
-  }
-
-  /* Solve with General Richardson */
-  if (IMPLEM == JAC || IMPLEM == GS) {
     write_GB_operator_colMajor_poisson1D(MB, &lab, &la, "MB.dat");
     richardson_MB(AB, RHS, SOL, MB, &lab, &la, &ku, &kl, &tol, &maxit, resvec, &nbite);
+    
+  } else if (IMPLEM == GS) {
+    MB = (double *) malloc(sizeof(double)*(la)*la);
+    extract_MB_gauss_seidel_tridiag(AB, MB, &lab, &la, &ku, &kl, &kv);
+    write_GB_operator_colMajor_poisson1D(MB, &la, &la, "MB.dat");
+    kl = la-1;
+    ku = 0;
+    richardson_MB(AB, RHS, SOL, MB, &la, &la, &ku, &kl, &tol, &maxit, resvec, &nbite);
   }
 
   /* Write solution */

@@ -20,18 +20,8 @@ int main(int argc,char *argv[])
 remove("PERF_TRFnTRS"); //files names for perf
 remove("PERF_SV");
 
-int maxit = 5000;
-int IMPLEM = 0;
 
-//variation de taille de matrice
-  for(int n = 10; n < 1000 ; n=n+10){
-  
-  struct timespec t1_tr, t2_tr, t1_sv, t2_sv;
-  double elapsed = 0.0;
-  
-  //nombre d'iteration
-    for(int it = 0; it < maxit ; ++it){
-  
+  for(int n = 10; n < 1000 ; ++n){
   int ierr;
   int jj;
   int nbpoints, la;
@@ -39,13 +29,16 @@ int IMPLEM = 0;
   int *ipiv;
   int info = 1;
   int NRHS;
+  int IMPLEM = 0;
   double T0, T1;
   double *RHS, *EX_SOL, *X;
   double **AAB;
   double *AB, *AB_init;
 
   double relres;
-
+  
+  struct timespec t1_tr, t2_tr, t1_sv, t2_sv;
+  double elapsed = 0.0;
 
   if (argc == 2) {
     IMPLEM = atoi(argv[1]); //0 if no entry
@@ -141,14 +134,13 @@ int IMPLEM = 0;
   //write_GB_operator_colMajor_poisson1D(AB, &lab, &la, "LU.dat");
   //write_xy(RHS, X, &la, "SOL.dat");
 
-  /* Relative forward error 
+  /* Relative forward error */
   if(nbpoints == 10){
   relres = relative_forward_error(RHS, EX_SOL, &la); //RHS is now the sol x
   printf("\nThe relative forward error is relres = %e\n",relres);
   }
-  */
   
-  /* dgbmv validation 
+  /* dgbmv validation */
   if(nbpoints == 10){
   AB_init = (double *) malloc(sizeof(double)*lab*la);
   set_GB_operator_colMajor_poisson1D(AB_init, &lab, &la, &kv);
@@ -166,22 +158,11 @@ int IMPLEM = 0;
   printf("\nEX4 : dgbmv validation pour n =10: r = erreur entre AB*X(calcule) et AB*X(exacte) \n");
   printf("r = %e\n",r);
   
-  
   free(EXP_RHS);
   free(EX_RHS);
   free(AB_init);
-  
   }
-  */
   
-  
-  
-  free(RHS);
-  free(EX_SOL);
-  free(X);
-  free(AB);
-  //printf("\n\n--------- End -----------\n");
-  }
   
   if (IMPLEM == TRF) {
     
@@ -192,7 +173,7 @@ int IMPLEM = 0;
         fprintf(stderr, "Error opening the file.\n");
         return 1; 
     }
-     elapsed = (double)(t2_tr.tv_nsec - t1_tr.tv_nsec)/maxit;
+     elapsed = (double)(t2_tr.tv_nsec - t1_tr.tv_nsec);
      fprintf(file, "%d %f\n", n,elapsed);
      fclose(file);
   }
@@ -208,10 +189,16 @@ int IMPLEM = 0;
         fprintf(stderr, "Error opening the file.\n");
         return 1; 
     }
-      elapsed = (double)(t2_sv.tv_nsec - t1_sv.tv_nsec)/maxit;
+      elapsed = (double)(t2_sv.tv_nsec - t1_sv.tv_nsec);
       fprintf(file, "%d %f\n", n,elapsed);
      fclose(file);
   }
   
+  
+  free(RHS);
+  free(EX_SOL);
+  free(X);
+  free(AB);
+  //printf("\n\n--------- End -----------\n");
   }
 }

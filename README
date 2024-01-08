@@ -1,26 +1,40 @@
 ##########################################################
 # README
 #
-# T. Dufaud
+# Z. Yutai
 ##########################################################
 
-This directory contains the code corresponding to the solution
-of Poisson 1D problem by direct method or iterative method.
-It is organized in three directories:
-src/ 
-include/
-bin/
+## Files organization
+This directory contains mainly the code corresponding to the solution of Poisson 1D problem by direct method or iterative method.
+It is organized in 3 directories:
+`src/`
+`include/`
+`bin/`
+
+Results are organized in 2 directories :
+`RESVEC_ALL_METHODES/`
+`Performance/`
+
+Files helping to compile programs are :
+`docker/`
+`Makefile`
+`yutai-VirtualBox.mk`
+
+Other files CAN BE DELETED and BE REGENERATED after compiling and executing the programs 
 
 "src" contains the source codes, "include" contains the 
 header files and "bin" contains the executables. 
-The compilation and execution can be done using the Makefile.
+
+"RESVEC_ALL_METHODES" contains calculated relatif errors of direct methods, "Performance" contains elapsed times of solving Ax=b using direct/iterative methods. Scripts to generate graphs are provided.
+
+The compilation and execution can be done using the "Makefile".
 
 Here are the principal targets: 
 testenv: bin/tp_testenv
 tp2poisson1D_direct: bin/tpPoisson1D_direct
 tp2poisson1D_iter: bin/tpPoisson1D_iter
 
-The command,
+## Commands
 $ make target
 Compile an executable bin/target 
 
@@ -34,6 +48,26 @@ $ make clean
 rm *.o bin/*
 
 Here:
+
 $ make run_testenv
 $ make run_tpPoisson1D_iter
 $ make run_tpPoisson1D_direct
+
+## NB
+
+codes structures in the files in `scr/` have been modified to adapt functions implementations, which I have been trying to minimize. SO the strutures are mainly influenced by PERORMANCE TESTS.
+
+
+## Reference
+
+https://netlib.org/lapack/explore-html/d2/d3f/dgbmv_8f_source.html
+
+https://www.netlib.org/lapack/lapack-3.1.1/html/dgbtrf.f.html
+
+https://netlib.org/lapack/explore-html/de/d76/dgbtrs_8f_source.html
+
+https://netlib.org/lapack/explore-html-3.6.1/d3/d49/group__double_g_bsolve_gafa35ce1d7865b80563bbed6317050ad7.html
+
+https://netlib.org/lapack/explore-html-3.6.1/de/da0/cblas_8h_a2e7d995100f18f9d4707e8f71cd00da6.html
+
+https://www.intel.com/content/www/us/en/docs/onemkl/cookbook/2023-1/factoring-general-block-tridiagonal-matrices.html

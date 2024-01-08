@@ -16,12 +16,11 @@ int main(int argc,char *argv[])
 /* ** argv: Valeur des arguments */
 
 {
-    
+    /*
     remove("PERF_TRFnTRS"); //files names for perf
     remove("PERF_SV");
     
     int maxit = 10000;
-    int IMPLEM = 0;
     
     //variation de taille de matrice
     for(int n = 10; n < 1010 ; n=n+100){
@@ -31,6 +30,8 @@ int main(int argc,char *argv[])
         
         //nombre d'iteration
         for(int it = 0; it < maxit ; ++it){
+            
+            */
             
             int ierr;
             int jj;
@@ -43,7 +44,7 @@ int main(int argc,char *argv[])
             double *RHS, *EX_SOL, *X;
             double **AAB;
             double *AB, *AB_init;
-            
+            int IMPLEM = 0;
             double relres;
             
             
@@ -55,12 +56,12 @@ int main(int argc,char *argv[])
             }
             
             NRHS=1;
-            nbpoints=n; //10 initialement
+            nbpoints=10; //10 initialement
             la=nbpoints-2; //colonne
             T0=-5.0;
             T1=5.0;
             
-            //printf("--------- Poisson 1D ---------\n\n");
+            printf("--------- Poisson 1D ---------\n\n");
             RHS=(double *) malloc(sizeof(double)*la);
             EX_SOL=(double *) malloc(sizeof(double)*la);
             X=(double *) malloc(sizeof(double)*la);
@@ -70,11 +71,11 @@ int main(int argc,char *argv[])
             set_dense_RHS_DBC_1D(RHS,&la,&T0,&T1);
             set_analytical_solution_DBC_1D(EX_SOL, X, &la, &T0, &T1);
             
-            /*
+            
              write_vec(RHS, &la, "RHS.dat");
              write_vec(EX_SOL, &la, "EX_SOL.dat");
              write_vec(X, &la, "X_grid.dat");
-             */
+             
             
             kv=1;
             ku=1;
@@ -84,21 +85,21 @@ int main(int argc,char *argv[])
             AB = (double *) malloc(sizeof(double)*lab*la);
             
             set_GB_operator_colMajor_poisson1D(AB, &lab, &la, &kv);
-            //write_GB_operator_colMajor_poisson1D(AB, &lab, &la, "AB.dat");
+            write_GB_operator_colMajor_poisson1D(AB, &lab, &la, "AB.dat");
             
             
             
-            //printf("Solution with LAPACK\n");
+            printf("Solution with LAPACK\n");
             ipiv = (int *) calloc(la, sizeof(int));
             
             /* LU Factorization */
             if (IMPLEM == TRF) {
-                clock_gettime(CLOCK_MONOTONIC_RAW, &t1_tr);
+                //clock_gettime(CLOCK_MONOTONIC_RAW, &t1_tr);
                 dgbtrf_(&la, &la, &kl, &ku, AB, &lab, ipiv, &info);
                 if (info==0){
                     /* Solution (Triangular) */
                     dgbtrs_("N", &la, &kl, &ku, &NRHS, AB, &lab, ipiv, RHS, &la, &info,1);
-                    clock_gettime(CLOCK_MONOTONIC_RAW, &t2_tr);
+                    //clock_gettime(CLOCK_MONOTONIC_RAW, &t2_tr);
                     if (info!=0){printf("\n INFO DGBTRS = %d\n",info);}
                 }else{
                     printf("\n INFO = %d\n",info);
@@ -117,13 +118,12 @@ int main(int argc,char *argv[])
                         printf("\n INFO DGBTRS = %d\n",info);
                         
                     }else{
-                        if(nbpoints == 10){
                             
                             /*Validation dgbtrftridiag*/
                             double r = relative_forward_error(RHS, EX_SOL, &la); //RHS is now the sol x
                             printf("\nEX6 : dgbtrftridiag validation pour n =10: r = error entre Sol calculee a partir de dgbtrftridiag et sol exacte \n");
                             printf("r = %e\n",r);
-                        }
+                   
                     }
                 }else{
                     printf("\n INFO = %d\n",info);
@@ -133,22 +133,22 @@ int main(int argc,char *argv[])
             
             /* It can also be solved with dgbsv */
             if (IMPLEM == SV) {
-                clock_gettime(CLOCK_MONOTONIC_RAW, &t1_sv);
+                //clock_gettime(CLOCK_MONOTONIC_RAW, &t1_sv);
                 dgbsv_(&la, &kl, &ku, &NRHS, AB, &lab, ipiv, RHS, &la, &info);
-                clock_gettime(CLOCK_MONOTONIC_RAW, &t2_sv);
+                //clock_gettime(CLOCK_MONOTONIC_RAW, &t2_sv);
             }
             
-            //write_GB_operator_colMajor_poisson1D(AB, &lab, &la, "LU.dat");
-            //write_xy(RHS, X, &la, "SOL.dat");
+            write_GB_operator_colMajor_poisson1D(AB, &lab, &la, "LU.dat");
+            write_xy(RHS, X, &la, "SOL.dat");
             
-            /* Relative forward error 
-             if(nbpoints == 10){
+            /* Relative forward error */
+             
              relres = relative_forward_error(RHS, EX_SOL, &la); //RHS is now the sol x
              printf("\nThe relative forward error is relres = %e\n",relres);
-             }
-             */
             
-            /* dgbmv validation 
+            
+            
+            /* dgbmv validation */
              if(nbpoints == 10){
              AB_init = (double *) malloc(sizeof(double)*lab*la);
              set_GB_operator_colMajor_poisson1D(AB_init, &lab, &la, &kv);
@@ -172,7 +172,7 @@ int main(int argc,char *argv[])
              free(AB_init);
              
              }
-             */
+            
             
             
             
@@ -180,9 +180,12 @@ int main(int argc,char *argv[])
             free(EX_SOL);
             free(X);
             free(AB);
-            //printf("\n\n--------- End -----------\n");
+            printf("\n\n--------- End -----------\n");
+            
+            /*
         }
         
+       
         if (IMPLEM == TRF) {
             
             FILE *file;
@@ -214,4 +217,5 @@ int main(int argc,char *argv[])
         }
         
     }
+    */
 }
